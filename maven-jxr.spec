@@ -41,7 +41,7 @@
 
 Name:           maven-jxr
 Version:        1.0
-Release:        %mkrel 2.2.2
+Release:        %mkrel 2.2.3
 Epoch:          0
 Summary:        Source cross referencing tool
 License:        Apache Software License
@@ -61,7 +61,7 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch:      noarch
 %endif
 
-BuildRequires:  jpackage-utils >= 0:1.7.2
+BuildRequires:  java-rpmbuild >= 0:1.7.2
 %if %{with_maven}
 BuildRequires:  maven2 >= 2.0.4
 BuildRequires:  maven2-plugin-resources

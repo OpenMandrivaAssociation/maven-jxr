@@ -32,16 +32,16 @@
 %define _with_gcj_support 1
 %define gcj_support %{?_with_gcj_support:1}%{!?_with_gcj_support:%{?_without_gcj_support:0}%{!?_without_gcj_support:%{?_gcj_support:%{_gcj_support}}%{!?_gcj_support:0}}}
 
-%define _without_maven 1
+#%define _without_maven 1
 
 # If you don't want to build with maven, and use straight ant instead,
 # give rpmbuild option '--without maven'
-%define with_maven %{!?_without_maven:1}%{?_without_maven:0}
+%define with_maven %{!?_without_maven:0}%{?_without_maven:1}
 %define without_maven %{?_without_maven:1}%{!?_without_maven:0}
 
 Name:           maven-jxr
 Version:        1.0
-Release:        %mkrel 2.2.3
+Release:        %mkrel 2.2.4
 Epoch:          0
 Summary:        Source cross referencing tool
 License:        Apache Software License

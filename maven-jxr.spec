@@ -46,6 +46,7 @@ Epoch:          0
 Summary:        Source cross referencing tool
 License:        Apache Software License
 Group:          Development/Java
+BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 URL:            http://maven.apache.org/doxia/
 
 Source0:        %{name}-%{version}.tar.gz

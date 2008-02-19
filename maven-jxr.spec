@@ -98,7 +98,7 @@ Requires:  classworlds
 Requires:  jakarta-commons-collections
 Requires:  jakarta-commons-lang
 Requires:  jakarta-oro
-Requires:  maven-shared-reporting-impl
+#Requires:  maven-shared-reporting-impl
 Requires:  plexus-container-default
 Requires:  plexus-i18n
 Requires:  plexus-utils

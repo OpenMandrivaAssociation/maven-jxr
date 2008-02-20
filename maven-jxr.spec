@@ -42,7 +42,7 @@
 
 Name:           maven-jxr
 Version:        2.1
-Release:        %mkrel 2.0.3
+Release:        %mkrel 2.0.4
 Epoch:          0
 Summary:        Source cross referencing tool
 License:        Apache Software License 2.0
@@ -255,8 +255,9 @@ install -pm 644 %{name}/pom.xml $RPM_BUILD_ROOT/%{_datadir}/maven2/poms/JPP-%{na
 install -m 644 %{name}-plugin/target/%{name}-plugin-%{version}.jar \
     $RPM_BUILD_ROOT%{_datadir}/maven2/plugins/jxr-plugin-%{version}.jar
 %add_to_maven_depmap org.apache.maven.plugins %{name}-plugin %{version} JPP/maven2/plugins jxr-plugin
-install -m 644 %{name}-plugin/pom.xml \
-    $RPM_BUILD_ROOT%{_datadir}/maven2/poms/JPP.maven2.plugins-jxr-plugin.pom
+#TODO readd pom when maven is updated
+#install -m 644 %{name}-plugin/pom.xml \
+#    $RPM_BUILD_ROOT%{_datadir}/maven2/poms/JPP.maven2.plugins-jxr-plugin.pom
 (cd $RPM_BUILD_ROOT%{_datadir}/maven2/plugins && for jar in *-%{version}*; do ln -sf ${jar} `echo $jar| sed  "s|-%{version}||g"`; done)
 
 

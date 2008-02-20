@@ -85,7 +85,7 @@ BuildRequires:  jakarta-commons-collections
 BuildRequires:  jakarta-commons-lang
 BuildRequires:  jakarta-oro
 BuildRequires:  jmock
-BuildRequires:  maven2
+#BuildRequires:  maven2
 BuildRequires:  maven-doxia >= 0:1.0-0.a10
 #BuildRequires:  maven-shared-plugin-testing-harness
 #BuildRequires:  maven-shared-reporting-impl
@@ -231,7 +231,7 @@ version=%{version}
 groupId=org.apache.maven.plugins
 artifactId=maven-jxr-plugin
 EOT
-   %{ant} -Dmaven.settings.offline=true -Dbuild.sysclasspath=only jar javadoc
+#   %{ant} -Dmaven.settings.offline=true -Dbuild.sysclasspath=only jar javadoc
 popd
 %endif
 
@@ -252,9 +252,9 @@ install -pm 644 %{name}/pom.xml $RPM_BUILD_ROOT/%{_datadir}/maven2/poms/JPP-%{na
 
 (cd $RPM_BUILD_ROOT%{_javadir} && for jar in *-%{version}*; do ln -sf ${jar} `echo $jar| sed  "s|-%{version}||g"`; done)
 
-install -m 644 %{name}-plugin/target/%{name}-plugin-%{version}.jar \
-    $RPM_BUILD_ROOT%{_datadir}/maven2/plugins/jxr-plugin-%{version}.jar
-%add_to_maven_depmap org.apache.maven.plugins %{name}-plugin %{version} JPP/maven2/plugins jxr-plugin
+#install -m 644 %{name}-plugin/target/%{name}-plugin-%{version}.jar \
+#    $RPM_BUILD_ROOT%{_datadir}/maven2/plugins/jxr-plugin-%{version}.jar
+#%add_to_maven_depmap org.apache.maven.plugins %{name}-plugin %{version} JPP/maven2/plugins jxr-plugin
 #TODO readd pom when maven is updated
 #install -m 644 %{name}-plugin/pom.xml \
 #    $RPM_BUILD_ROOT%{_datadir}/maven2/poms/JPP.maven2.plugins-jxr-plugin.pom
@@ -265,10 +265,10 @@ install -m 644 %{name}-plugin/target/%{name}-plugin-%{version}.jar \
 install -d -m 755 $RPM_BUILD_ROOT%{_javadocdir}/%{name}-%{version}/
 cp -pr %{name}/target/site/apidocs/* \
                     $RPM_BUILD_ROOT%{_javadocdir}/%{name}-%{version}/
-install -d -m 755 $RPM_BUILD_ROOT%{_javadocdir}/%{name}-%{version}/plugin
-cp -pr %{name}-plugin/target/site/apidocs/* \
-                    $RPM_BUILD_ROOT%{_javadocdir}/%{name}-%{version}/plugin
-ln -s %{name}-%{version} $RPM_BUILD_ROOT%{_javadocdir}/%{name} # ghost symlink
+#install -d -m 755 $RPM_BUILD_ROOT%{_javadocdir}/%{name}-%{version}/plugin
+#cp -pr %{name}-plugin/target/site/apidocs/* \
+#                    $RPM_BUILD_ROOT%{_javadocdir}/%{name}-%{version}/plugin
+#ln -s %{name}-%{version} $RPM_BUILD_ROOT%{_javadocdir}/%{name} # ghost symlink
 
 %{gcj_compile}
 

@@ -42,7 +42,7 @@
 
 Name:           maven-jxr
 Version:        2.1
-Release:        %mkrel 2.0.8
+Release:        %mkrel 2.0.9
 Epoch:          0
 Summary:        Source cross referencing tool
 License:        Apache Software License 2.0

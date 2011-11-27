@@ -30,7 +30,7 @@
 
 Name:           maven-jxr
 Version:        2.2
-Release:        3
+Release:        5
 Summary:        Source cross referencing tool
 License:        ASL 2.0
 Group:          Development/Java

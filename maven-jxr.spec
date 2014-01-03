@@ -1,3 +1,4 @@
+%{?_javapackages_macros:%_javapackages_macros}
 # Copyright (c) 2000-2005, JPackage Project
 # All rights reserved.
 #
@@ -29,62 +30,49 @@
 #
 
 Name:           maven-jxr
-Version:        2.2
-Release:        5
+Version:        2.3
+Release:        9.0%{?dist}
+Epoch:          0
 Summary:        Source cross referencing tool
-License:        ASL 2.0
-Group:          Development/Java
+# BSD: maven-jxr/src/main/java/org/apache/maven/jxr/JavaCodeTransform.java
+License:        ASL 2.0 and BSD
 URL:            http://maven.apache.org/doxia/
 
-Source0:        http://repo2.maven.org/maven2/org/apache/maven/jxr/jxr/2.2/jxr-2.2-source-release.zip
-Source1:        %{name}-jpp-depmap.xml
+Source0:        http://repo2.maven.org/maven2/org/apache/maven/jxr/jxr/%{version}/jxr-%{version}-source-release.zip
+# taken from maven-jxr/src/main/java/org/apache/maven/jxr/JavaCodeTransform.java
+Source1:        LICENSE-BSD
 
 BuildArch:      noarch
 
-BuildRequires:  jpackage-utils >= 0:1.7.2
-BuildRequires:  maven2 >= 2.0.4
-BuildRequires:  maven-resources-plugin
-BuildRequires:  maven-compiler-plugin
-BuildRequires:  maven-resources-plugin
-BuildRequires:  maven-compiler-plugin
-BuildRequires:  maven-surefire-plugin
-BuildRequires:  maven-jar-plugin
-BuildRequires:  maven-install-plugin
-BuildRequires:  maven-javadoc-plugin
-BuildRequires:  maven-site-plugin
-BuildRequires:  maven-plugin-plugin
-BuildRequires:  maven-doxia-sitetools
-BuildRequires:  maven-surefire-provider-junit
-BuildRequires:  maven-plugin-testing-harness
-BuildRequires:  junit >= 3.8.2
-BuildRequires:  apache-commons-collections >= 3.1
-BuildRequires:  jakarta-oro >= 2.0.8
-BuildRequires:  plexus-utils >= 1.2
-BuildRequires:  velocity >= 1.4
-
-Requires:       junit >= 3.8.2
-Requires:       apache-commons-collections >= 3.1
-Requires:       jakarta-oro >= 2.0.8
-Requires:       plexus-utils >= 1.2
-Requires:       velocity >= 1.4
-
-Requires(post):    jpackage-utils >= 0:1.7.2
-Requires(postun):  jpackage-utils >= 0:1.7.2
+BuildRequires:  maven-local
+BuildRequires:  mvn(commons-io:commons-io)
+BuildRequires:  mvn(commons-lang:commons-lang)
+BuildRequires:  mvn(org.apache.maven.doxia:doxia-sink-api)
+BuildRequires:  mvn(org.apache.maven.doxia:doxia-site-renderer)
+BuildRequires:  mvn(org.apache.maven.reporting:maven-reporting-api)
+BuildRequires:  mvn(org.apache.maven.reporting:maven-reporting-impl)
+BuildRequires:  mvn(org.apache.maven.wagon:wagon-provider-api)
+BuildRequires:  mvn(org.apache.maven:maven-model)
+BuildRequires:  mvn(org.apache.maven:maven-parent)
+BuildRequires:  mvn(org.apache.maven:maven-plugin-api)
+BuildRequires:  mvn(org.apache.maven:maven-project)
+BuildRequires:  mvn(org.apache.velocity:velocity)
+BuildRequires:  mvn(org.codehaus.plexus:plexus-utils)
+BuildRequires:  mvn(oro:oro)
+BuildRequires:  mvn(xalan:xalan)
+BuildRequires:  mvn(xml-apis:xml-apis)
 
 %description
 Maven JXR is a source cross referencing tool.
 
 %package javadoc
 Summary:        Javadoc for %{name}
-Group:          Development/Java
-Requires:       jpackage-utils
 
 %description javadoc
 API documentation for %{name}.
 
 %package -n maven-plugin-jxr
 Summary:        Maven plugin for JXR
-Group:          Development/Java
 Requires:       %{name} = %{version}-%{release}
 
 %description -n maven-plugin-jxr
@@ -93,81 +81,153 @@ Maven plugin for JXR.
 %prep
 %setup -q -n jxr-%{version}
 
+cp %{SOURCE1} .
+
+# Missing dependency
+%pom_add_dep oro:oro maven-jxr
+
+%mvn_package :maven-jxr-plugin maven-plugin-jxr
+
+# maven-core has scope "provided" in Plugin Testing Harness, so we
+# need to provide it or tests will fail to compile.  This works for
+# upstream because upstream uses a different version of Plugin Testing
+# Harness in which scope of maven-core dependency is "compile".
+%pom_xpath_inject pom:project "<dependencies/>"
+%pom_add_dep org.apache.maven:maven-core::test
+
 %build
-
-export MAVEN_REPO_LOCAL=$(pwd)/.m2/repository
-mkdir -p $MAVEN_REPO_LOCAL
-
 # The test failures seem to have something to do with:
 # http://jira.codehaus.org/browse/MCHANGES-88
 # We can investigate when we upgrade to 2.2.x to see if they still occur.
 # Update: Seems that tests fail because they are trying to access
 # plexus component descriptors which seem to be different?
-    mvn-jpp \
-        -e \
-        -Dmaven.repo.local=$MAVEN_REPO_LOCAL \
-        -Dmaven2.jpp.depmap.file=%{SOURCE1} \
-        -Dmaven.test.failure.ignore=true \
-        install javadoc:aggregate
+%mvn_build -f
 
 %install
-rm -rf $RPM_BUILD_ROOT
-# jars/poms
-install -d -m 755 $RPM_BUILD_ROOT%{_javadir}/%{name}
-install -d -m 755 $RPM_BUILD_ROOT/%{_mavenpomdir}
+%mvn_install
 
-install -pm 644 maven-jxr/target/%{name}-%{version}.jar \
-                $RPM_BUILD_ROOT%{_javadir}/%{name}.jar
-%add_to_maven_depmap org.apache.maven.jxr jxr %{version} JPP %{name}-parent
-%add_to_maven_depmap org.apache.maven maven-jxr %{version} JPP %{name}
+%files -f .mfiles
+%dir %{_javadir}/%{name}
+%doc LICENSE LICENSE-BSD NOTICE
 
-install -pm 644 pom.xml $RPM_BUILD_ROOT/%{_mavenpomdir}/JPP-%{name}-parent.pom
-install -pm 644 maven-jxr/pom.xml $RPM_BUILD_ROOT/%{_mavenpomdir}/JPP-%{name}.pom
+%files javadoc -f .mfiles-javadoc
+%doc LICENSE LICENSE-BSD NOTICE
 
-# maven-jxr plugin
-%add_to_maven_depmap org.apache.maven.plugins maven-jxr-plugin %{version} JPP maven-plugin-jxr
-install -pm 644 maven-jxr-plugin/target/maven-jxr-plugin-%{version}.jar \
-                $RPM_BUILD_ROOT%{_javadir}/maven-plugin-jxr.jar
+%files -n maven-plugin-jxr -f .mfiles-maven-plugin-jxr
 
-install -pm 644 maven-jxr-plugin/pom.xml \
-        $RPM_BUILD_ROOT/%{_mavenpomdir}/JPP-maven-plugin-jxr.pom
+%changelog
+* Sat Aug 03 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0:2.3-9
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_20_Mass_Rebuild
 
-# javadoc
-install -d -m 755 $RPM_BUILD_ROOT%{_javadocdir}/%{name}
+* Tue Jul 23 2013 Michal Srb <msrb@redhat.com> - 0:2.3-8
+- Build with XMvn
+- Add BSD license text
+- Drop group tag
+- Replace patch with %%pom_ macro
+- Fix BR
 
-cp -pr target/site/apidocs/* \
-                $RPM_BUILD_ROOT%{_javadocdir}/%{name}/
+* Mon Mar 11 2013 Mikolaj Izdebski <mizdebsk@redhat.com> - 0:2.3-7
+- Add maven-core to test dependencies
+- Resolves: rhbz#914171
 
-%post
-%update_maven_depmap
+* Thu Feb 14 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0:2.3-6
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_19_Mass_Rebuild
 
-%postun
-%update_maven_depmap
+* Wed Feb 06 2013 Java SIG <java-devel@lists.fedoraproject.org> - 0:2.3-5
+- Update for https://fedoraproject.org/wiki/Fedora_19_Maven_Rebuild
+- Replace maven BuildRequires with maven-local
 
-%post -n maven-plugin-jxr
-%update_maven_depmap
+* Wed Nov 21 2012 Stanislav Ochotnicky <sochotnicky@redhat.com> - 0:2.3-4
+- Install license files and add BSD to license tag (#876984)
 
-%postun -n maven-plugin-jxr
-%update_maven_depmap
+* Thu Jul 19 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0:2.3-3
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_18_Mass_Rebuild
 
-%pre javadoc
-# workaround for rpm bug, can be removed in F-17
-[ $1 -gt 1 ] && [ -L %{_javadocdir}/%{name} ] && \
-rm -rf $(readlink -f %{_javadocdir}/%{name}) %{_javadocdir}/%{name} || :
+* Fri Jan 13 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0:2.3-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_17_Mass_Rebuild
 
-%files
-%defattr(-,root,root,-)
-%{_javadir}/%{name}*.jar
-%{_mavenpomdir}/JPP-%{name}-parent.pom
-%{_mavenpomdir}/JPP-%{name}.pom
-%{_mavendepmapfragdir}/%{name}
+* Wed Jul 20 2011 Alexander Kurtakov <akurtako@redhat.com> 0:2.3-1
+- Update to upstream 2.3. release.
 
-%files javadoc
-%defattr(-,root,root,-)
-%doc %{_javadocdir}/*
+* Sun Mar 13 2011 Mat Booth <fedora@matbooth.co.uk> 0:2.2-3
+- Maven plug-in sub-package should require the core package.
+- Use _mavenpomdir macro.
+- Don't install versioned javadocs.
 
-%files -n maven-plugin-jxr
-%defattr(-,root,root,-)
-%{_mavenpomdir}/JPP-maven-plugin-jxr.pom
-%{_javadir}/maven-plugin-jxr*.jar
+* Tue Feb 08 2011 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0:2.2-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_15_Mass_Rebuild
 
+* Fri Dec 17 2010 Alexander Kurtakov <akurtako@redhat.com> 0:2.2-1
+- Update to upstream 2.2.
+- Adapt to current guidelines.
+
+* Tue Sep  7 2010 Stanislav Ochotnicky <sochotnicky@redhat.com> - 0:2.1-7
+- Fix build bug (javadoc:aggregate)
+
+* Sat Sep 12 2009 Alexander Kurtakov <akurtako@redhat.com> 0:2.1-6
+- Install maven-jxr parent pom.
+
+* Sat Sep 12 2009 Alexander Kurtakov <akurtako@redhat.com> 0:2.1-5
+- Fix jxr plugin pom name.
+
+* Fri Sep 11 2009 Alexander Kurtakov <akurtako@redhat.com> 0:2.1-4
+- Add BR for maven2-plugin.site.
+- BR tomcat5-servlet-api.
+- BR tomcat5.eclipse-subclipse - update to 1.6.16 in both rawhide and F-14
+- BR maven-surefire-provider-junit.
+- BR maven-plugin-plugin.
+- BR maven-shared-plugin-testing-harness.
+
+* Fri Sep 11 2009 Alexander Kurtakov <akurtako@redhat.com> 0:2.1-3
+- Add BR for doxia-sitetools.
+
+* Fri Sep 11 2009 Alexander Kurtakov <akurtako@redhat.com> 0:2.1-2
+- Fix depmap for the plugin.
+
+* Thu Sep 10 2009 Andrew Overholt <overholt@redhat.com> 2.1-1
+- 2.1
+- Add maven-plugin-jxr.
+
+* Sat Jul 25 2009 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0:1.0-4.8
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_12_Mass_Rebuild
+
+* Wed Feb 25 2009 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0:1.0-3.8
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_11_Mass_Rebuild
+
+* Wed Aug 13 2008 Deepak Bhole <dbhole@redhat.com> 1.0-2.8
+- Build for ppc64
+
+* Wed Jul  9 2008 Tom "spot" Callaway <tcallawa@redhat.com> 1.0-2.7
+- drop repotag
+
+* Thu May 29 2008 Tom "spot" Callaway <tcallawa@redhat.com> 1.0-2jpp.6
+- fix license tag
+
+* Thu Feb 28 2008 Deepak Bhole <dbhole@redhat.com> 1.0-2jpp.5
+- Rebuild
+
+* Fri Sep 21 2007 Deepak Bhole <dbhole@redhat.com> 1.0-2jpp.4
+- Build without maven
+- ExcludeArch ppc64
+
+* Fri Aug 31 2007 Deepak Bhole <dbhole@redhat.com> 0:1.0-2jpp.3
+- Build without maven (for initial ppc build)
+
+* Tue Mar 20 2007 Deepak Bhole <dbhole@redhat.com> 0:1.0-2jpp.2
+- Build with maven
+
+* Tue Feb 27 2007 Tania Bento <tbento@redhat.com> 0:1.0-2jpp.1
+- Fixed %%Release.
+- Fixed %%BuildRoot.
+- Removed period from %%Summary.
+- Removed %%Vendor.
+- Removed %%Distribution.
+- Removed %%post and %%postun sections for javadoc.
+- Added gcj support option.
+- Fixed instructions on how to generate source drops.
+
+* Tue Oct 17 2006 Deepak Bhole <dbhole@redhat.com> - 0:1.0-2jpp
+- Update for maven 9jpp.
+
+* Fri Jun 16 2006 Deepak Bhole <dbhole@redhat.com> - 0:1.0-1jpp
+- Initial build

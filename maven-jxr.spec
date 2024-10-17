@@ -36,7 +36,7 @@ Epoch:          0
 Summary:        Source cross referencing tool
 # BSD: maven-jxr/src/main/java/org/apache/maven/jxr/JavaCodeTransform.java
 License:        ASL 2.0 and BSD
-URL:            http://maven.apache.org/doxia/
+URL:            https://maven.apache.org/doxia/
 
 Source0:        http://repo2.maven.org/maven2/org/apache/maven/jxr/jxr/%{version}/jxr-%{version}-source-release.zip
 # taken from maven-jxr/src/main/java/org/apache/maven/jxr/JavaCodeTransform.java
